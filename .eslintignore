@@ -1,0 +1,46 @@
+# Node modules
+node_modules/
+
+# Build output
+.next/
+dist/
+build/
+out/
+
+# Dependencies
+*.min.js
+*.min.css
+
+# Supabase
+supabase/migrations/
+
+# Generated files
+coverage/
+*.generated.ts
+*.generated.js
+
+# Test files (generally lint-free)
+test/
+
+# Config files (usually lint-exempt)
+vitest.config.ts
+next.config.ts
+tailwind.config.js
+postcss.config.mjs
+eslint.config.mjs
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary
+*.tmp
+*.temp
+*.bak

@@ -1,0 +1,44 @@
+# Node modules
+node_modules/
+
+# Next.js
+.next/
+out/
+*.swp
+*.swo
+*~
+
+# Build
+build/
+dist/
+
+# Logs
+*.log
+
+# Dependencies
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+
+# Production
+/.next/
+
+# Misc
+.DS_Store
+.env*
+!.env.example
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Git
+.git/
+.gitignore
+
+# Source map
+*.map
