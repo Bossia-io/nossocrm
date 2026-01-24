@@ -403,3 +403,78 @@ export const whatsappService = instance;
  * Export class for testing
  */
 export { WhatsAppService };
+
+/**
+ * Test interface for receiveMessage
+ */
+interface ReceiveMessageInput {
+  organizationId: string;
+  webhook: {
+    from: string;
+    id: string;
+    body: string;
+    timestamp: number;
+    contact_name?: string;
+  };
+}
+
+interface ReceiveMessageResponse {
+  status: 'processing' | 'error' | 'duplicate' | 'completed';
+  message?: string;
+  message_id?: string;
+  lead_id?: string;
+  conversation_id?: string;
+}
+
+/**
+ * Receive message handler for webhooks
+ * This is the main entry point for processing incoming WhatsApp messages
+ */
+export async function receiveMessage(
+  input: ReceiveMessageInput
+): Promise<ReceiveMessageResponse> {
+  const { organizationId, webhook } = input;
+
+  try {
+    // Validate required fields
+    if (!organizationId || !webhook?.from || !webhook?.id || !webhook?.timestamp) {
+      return { status: 'error', message: 'Missing required fields' };
+    }
+
+    // Validate phone number
+    if (!webhook.from || !/^55\d{10,11}$/.test(webhook.from)) {
+      return { status: 'error', message: 'Invalid phone number' };
+    }
+
+    // Validate timestamp
+    const now = Math.floor(Date.now() / 1000);
+    if (webhook.timestamp < now - 86400 || webhook.timestamp > now + 3600) {
+      return { status: 'error', message: 'Invalid timestamp' };
+    }
+
+    // Validate body
+    if (!webhook.body || webhook.body.trim().length === 0) {
+      return { status: 'error', message: 'Empty message body' };
+    }
+
+    // Call the service method with proper parameters
+    await instance.receiveMessage(
+      webhook.from,
+      webhook.body,
+      webhook.id,
+      organizationId
+    );
+
+    return {
+      status: 'processing',
+      message_id: webhook.id,
+    };
+  } catch (error) {
+    console.error('[receiveMessage] Error:', error);
+    return {
+      status: 'error',
+      message: String(error),
+      message_id: webhook?.id,
+    };
+  }
+}
