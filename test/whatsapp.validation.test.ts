@@ -25,7 +25,7 @@ describe('T019: Comprehensive Validation Scenarios', () => {
   const validTimestamp = Math.floor(Date.now() / 1000);
 
   let mockSupabaseClient: any;
-  let databaseState: Map<string, any[]> = new Map();
+  const databaseState: Map<string, any[]> = new Map();
 
   beforeEach(() => {
     databaseState.clear();

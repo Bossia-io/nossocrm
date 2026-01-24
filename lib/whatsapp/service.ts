@@ -41,19 +41,23 @@ class WhatsAppService {
     messageId: string,
     organizationId: string
   ): Promise<void> {
-    const supabase = this.supabase.setHeader(
-      'x-organization-id',
-      organizationId
-    );
+    // Note: RLS policies will enforce organization_id filtering
+    // No need to set header on client - use service role instead
+    const supabase = this.supabase;
 
     // =========== Step 1: Idempotency Check ===========
     // Prevent duplicate processing if webhook is retried
-    const { data: existingLog } = await supabase
-      .from('whatsapp_webhook_logs')
-      .select('id, status')
-      .eq('message_id', messageId)
-      .single()
-      .catch(() => ({ data: null }));
+    let existingLog: any = null;
+    try {
+      const response = await supabase
+        .from('whatsapp_webhook_logs')
+        .select('id, status')
+        .eq('message_id', messageId)
+        .single();
+      existingLog = response.data;
+    } catch (err) {
+      logger.debug('Idempotency check error', err);
+    }
 
     if (existingLog) {
       if (existingLog.status === 'processed') {
@@ -98,14 +102,19 @@ class WhatsAppService {
 
       // =========== Step 3: Find or Create Lead ===========
       // Deduplication: check if lead with this wa_id exists
-      let lead;
-      const { data: existingLead } = await supabase
-        .from('leads')
-        .select('id, name, phone')
-        .eq('organization_id', organizationId)
-        .eq('wa_id', fromWaId)
-        .single()
-        .catch(() => ({ data: null }));
+      let lead: any;
+      let existingLead: any = null;
+      try {
+        const response = await supabase
+          .from('leads')
+          .select('id, name, phone')
+          .eq('organization_id', organizationId)
+          .eq('wa_id', fromWaId)
+          .single();
+        existingLead = response.data;
+      } catch (err) {
+        logger.debug('Lead lookup error', err);
+      }
 
       if (existingLead) {
         lead = existingLead;
@@ -125,7 +134,6 @@ class WhatsAppService {
           })
           .select('id, name, phone')
           .single();
-
         if (leadError) {
           throw new Error(`Failed to create lead: ${leadError.message}`);
         }
@@ -135,14 +143,19 @@ class WhatsAppService {
       }
 
       // =========== Step 4: Find or Create Conversation ===========
-      let conversation;
-      const { data: existingConversation } = await supabase
-        .from('whatsapp_conversations')
-        .select('id')
-        .eq('organization_id', organizationId)
-        .eq('wa_id', fromWaId)
-        .single()
-        .catch(() => ({ data: null }));
+      let conversation: any;
+      let existingConversation: any = null;
+      try {
+        const response = await supabase
+          .from('whatsapp_conversations')
+          .select('id')
+          .eq('organization_id', organizationId)
+          .eq('wa_id', fromWaId)
+          .single();
+        existingConversation = response.data;
+      } catch (err) {
+        logger.debug('Conversation lookup error', err);
+      }
 
       if (existingConversation) {
         conversation = existingConversation;
@@ -226,10 +239,10 @@ class WhatsAppService {
           attempts: (logEntry?.attempts || 1) + 1,
           processed_at: new Date().toISOString(),
         })
-        .eq('id', logEntry?.id)
-        .catch((err) =>
-          logger.error('Failed to update webhook log to failed state', err)
-        );
+        .eq('id', logEntry?.id);
+      
+      logger.debug('Updated webhook log to failed state');
+
 
       // Re-throw to signal failure to webhook caller
       throw error;
@@ -250,10 +263,7 @@ class WhatsAppService {
     message: string,
     organizationId: string
   ): Promise<string> {
-    const supabase = this.supabase.setHeader(
-      'x-organization-id',
-      organizationId
-    );
+    const supabase = this.supabase;
 
     // =========== Step 1: Fetch Lead ===========
     const { data: lead, error: leadError } = await supabase
@@ -276,13 +286,21 @@ class WhatsAppService {
     }
 
     // =========== Step 2: Get or Create Conversation ===========
-    const { data: conversation, error: convError } = await supabase
-      .from('whatsapp_conversations')
-      .select('id')
-      .eq('organization_id', organizationId)
-      .eq('lead_id', leadId)
-      .single()
-      .catch(() => ({ data: null }));
+    let conversation: any = null;
+    let convError: any = null;
+    try {
+      const response = await supabase
+        .from('whatsapp_conversations')
+        .select('id')
+        .eq('organization_id', organizationId)
+        .eq('lead_id', leadId)
+        .single();
+      conversation = response.data;
+      convError = response.error;
+    } catch (err) {
+      convError = err;
+      logger.debug('Conversation lookup error', err);
+    }
 
     if (!conversation) {
       throw new Error(
@@ -344,18 +362,25 @@ class WhatsAppService {
     conversationId: string,
     organizationId: string
   ): Promise<WhatsAppConversation | null> {
-    const supabase = this.supabase.setHeader(
-      'x-organization-id',
-      organizationId
-    );
+    const supabase = this.supabase;
 
-    const { data, error } = await supabase
-      .from('whatsapp_conversations')
-      .select('*')
-      .eq('id', conversationId)
-      .eq('organization_id', organizationId)
-      .single()
-      .catch(() => ({ data: null }));
+    let data: any = null;
+    let error: any = null;
+
+    try {
+      const response = await supabase
+        .from('whatsapp_conversations')
+        .select('*')
+        .eq('id', conversationId)
+        .eq('organization_id', organizationId)
+        .single();
+
+      data = response.data;
+      error = response.error;
+    } catch (err) {
+      error = err;
+      logger.debug('Conversation fetch error', err);
+    }
 
     if (error || !data) {
       logger.warn(

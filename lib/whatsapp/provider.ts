@@ -7,6 +7,7 @@
 
 import 'server-only';
 
+import { createHmac, timingSafeEqual } from 'crypto';
 import { createStaticAdminClient } from '@/lib/supabase/server';
 import {
   WhatsAppProvider,
@@ -30,12 +31,20 @@ export async function getProvider(
   // Load provider settings from organization_settings
   const supabase = createStaticAdminClient();
 
-  const { data: settings, error } = await supabase
-    .from('organization_settings')
-    .select('whatsapp_provider, whatsapp_config')
-    .eq('organization_id', organizationId)
-    .single()
-    .catch(() => ({ data: null }));
+  let settings: any = null;
+  let error: any = null;
+
+  try {
+    const response = await supabase
+      .from('organization_settings')
+      .select('whatsapp_provider, whatsapp_config')
+      .eq('organization_id', organizationId)
+      .single();
+    settings = response.data;
+    error = response.error;
+  } catch (e) {
+    error = e;
+  }
 
   if (error || !settings) {
     // Fallback to default provider (Baileys for MVP)
@@ -48,7 +57,7 @@ export async function getProvider(
   }
 
   const providerType: WhatsAppProviderType =
-    (settings.whatsapp_provider as WhatsAppProviderType) || 'baileys';
+    (settings?.whatsapp_provider as WhatsAppProviderType) || 'baileys';
 
   switch (providerType) {
     case 'baileys':
@@ -88,16 +97,13 @@ export function verifyWebhookSignature(
   signature: string,
   secret: string
 ): boolean {
-  // Use crypto.timingSafeEqual to prevent timing attacks
-  const crypto = require('crypto');
-
-  const expectedSignature = crypto
-    .createHmac('sha256', secret)
+  // Use timingSafeEqual to prevent timing attacks
+  const expectedSignature = createHmac('sha256', secret)
     .update(payload)
     .digest('base64');
 
   try {
-    return crypto.timingSafeEqual(
+    return timingSafeEqual(
       Buffer.from(signature),
       Buffer.from(expectedSignature)
     );

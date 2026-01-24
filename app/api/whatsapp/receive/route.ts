@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { whatsappService } from '@/lib/whatsapp/service';
 import { verifyWebhookSignature, getProvider } from '@/lib/whatsapp/provider';
-import { createServerClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 import { logger } from '@/lib/logger';
 
 /**
@@ -97,13 +97,18 @@ export async function POST(request: NextRequest) {
 
     // =========== Step 3: Verify Webhook Signature (Meta) ===========
     // Get webhook secret from org settings
-    const supabase = createServerClient();
-    const { data: settings } = await supabase
-      .from('organization_settings')
-      .select('whatsapp_webhook_secret')
-      .eq('organization_id', organizationId)
-      .single()
-      .catch(() => ({ data: null }));
+    const supabase = await createClient();
+    let settings: any = null;
+    try {
+      const response = await supabase
+        .from('organization_settings')
+        .select('whatsapp_webhook_secret')
+        .eq('organization_id', organizationId)
+        .single();
+      settings = response.data;
+    } catch (err) {
+      logger.debug('Webhook secret lookup error', err);
+    }
 
     const webhookSecret = settings?.whatsapp_webhook_secret;
 

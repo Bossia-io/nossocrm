@@ -181,7 +181,7 @@ describe('T015: Complete Receive Flow Integration', () => {
 
   it('should perform actions in correct order', async () => {
     const callOrder: string[] = [];
-    let originalFrom = mockSupabaseClient.from;
+    const originalFrom = mockSupabaseClient.from;
 
     mockSupabaseClient.from = vi.fn((table: string) => {
       callOrder.push(`from(${table})`);

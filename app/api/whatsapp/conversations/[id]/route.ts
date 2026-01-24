@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 import { logger } from '@/lib/logger';
 import {
   WhatsAppConversation,
@@ -72,7 +72,7 @@ export async function GET(
     }
 
     // =========== Step 3: Fetch Conversation ===========
-    const supabase = createServerClient();
+    const supabase = await createClient();
 
     const { data: conversation, error: convError } = await supabase
       .from('whatsapp_conversations')
@@ -180,16 +180,22 @@ export async function PATCH(
       );
     }
 
-    const supabase = createServerClient();
+    const supabase = await createClient();
 
     // Verify conversation exists and belongs to org
-    const { data: existing } = await supabase
-      .from('whatsapp_conversations')
-      .select('id')
-      .eq('id', conversationId)
-      .eq('organization_id', organizationId)
-      .single()
-      .catch(() => ({ data: null }));
+    let existing: any = null;
+    try {
+      const response = await supabase
+        .from('whatsapp_conversations')
+        .select('id')
+        .eq('id', conversationId)
+        .eq('organization_id', organizationId)
+        .single();
+      existing = response.data;
+    } catch (err) {
+      // Record not found or error occurred
+      logger.debug('Conversation lookup error', err);
+    }
 
     if (!existing) {
       return NextResponse.json(

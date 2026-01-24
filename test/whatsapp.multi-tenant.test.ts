@@ -25,7 +25,7 @@ describe('T016: Multi-Tenant Isolation', () => {
   const waId2 = '5521999887766'; // Different customer
 
   let mockSupabaseClient: any;
-  let databaseState: Map<string, any[]> = new Map();
+  const databaseState: Map<string, any[]> = new Map();
 
   beforeEach(() => {
     // Track data by organization

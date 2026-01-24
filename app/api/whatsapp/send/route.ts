@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { whatsappService } from '@/lib/whatsapp/service';
-import { createServerClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 import { logger } from '@/lib/logger';
 
 interface SendRequest {
@@ -40,7 +40,7 @@ interface SendResponse {
 export async function POST(request: NextRequest): Promise<Response> {
   try {
     // =========== Step 1: Extract Organization Context ===========
-    const supabase = createServerClient();
+    const supabase = await createClient();
 
     // Get organization from auth context (assumes auth middleware sets this)
     // In a real scenario, this would be extracted from user session or header
@@ -100,13 +100,21 @@ export async function POST(request: NextRequest): Promise<Response> {
     }
 
     // =========== Step 4: Verify Lead Exists and Belongs to Org ===========
-    const { data: lead, error: leadError } = await supabase
-      .from('leads')
-      .select('id, wa_id')
-      .eq('id', lead_id)
-      .eq('organization_id', organizationIdHeader)
-      .single()
-      .catch(() => ({ data: null }));
+    let lead: any = null;
+    let leadError: any = null;
+    try {
+      const response = await supabase
+        .from('leads')
+        .select('id, wa_id')
+        .eq('id', lead_id)
+        .eq('organization_id', organizationIdHeader)
+        .single();
+      lead = response.data;
+      leadError = response.error;
+    } catch (err) {
+      leadError = err;
+      logger.debug('Lead lookup error', err);
+    }
 
     if (leadError || !lead) {
       logger.warn(`Lead ${lead_id} not found in org ${organizationIdHeader}`);
