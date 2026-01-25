@@ -1,4 +1,4 @@
-featurewhatsv1/**
+/**
  * WhatsApp Baileys Client
  * @file lib/whatsapp/client.ts
  * @description WebSocket connection manager for Baileys WhatsApp integration (stub for MVP)
