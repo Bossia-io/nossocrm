@@ -13,6 +13,7 @@ const routeImports = {
   settings: () => import('@/features/settings/SettingsPage'),
   activities: () => import('@/features/activities/ActivitiesPage'),
   reports: () => import('@/features/reports/ReportsPage'),
+  whatsapp: () => import('@/app/(protected)/whatsapp/page'),
   ai: () => import('@/features/ai-hub/AIHubPage'),
 } as const;
 

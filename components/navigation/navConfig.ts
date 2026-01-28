@@ -10,6 +10,7 @@ import {
   Settings,
   User,
   Sparkles,
+  MessageSquare,
 } from 'lucide-react';
 
 export type PrimaryNavId = 'inbox' | 'boards' | 'contacts' | 'activities' | 'more';
@@ -30,7 +31,7 @@ export const PRIMARY_NAV: PrimaryNavItem[] = [
   { id: 'more', label: 'Mais', icon: MoreHorizontal },
 ];
 
-export type SecondaryNavId = 'dashboard' | 'reports' | 'ai' | 'settings' | 'profile';
+export type SecondaryNavId = 'dashboard' | 'reports' | 'whatsapp' | 'ai' | 'settings' | 'profile';
 
 export interface SecondaryNavItem {
   id: SecondaryNavId;
@@ -43,6 +44,7 @@ export interface SecondaryNavItem {
 export const SECONDARY_NAV: SecondaryNavItem[] = [
   { id: 'dashboard', label: 'Visão Geral', href: '/dashboard', icon: LayoutDashboard },
   { id: 'reports', label: 'Relatórios', href: '/reports', icon: BarChart3 },
+  { id: 'whatsapp', label: 'WhatsApp', href: '/whatsapp', icon: MessageSquare },
   { id: 'ai', label: 'Chat IA', href: '/ai', icon: Sparkles },
   { id: 'settings', label: 'Configurações', href: '/settings', icon: Settings },
   { id: 'profile', label: 'Perfil', href: '/profile', icon: User },

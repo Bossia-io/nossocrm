@@ -266,6 +266,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             { to: '/boards', icon: KanbanSquare, label: 'Boards', prefetch: 'boards' as const },
             { to: '/contacts', icon: Users, label: 'Contatos', prefetch: 'contacts' as const },
             { to: '/activities', icon: CheckSquare, label: 'Atividades', prefetch: 'activities' as const },
+            { to: '/whatsapp', icon: Sparkles, label: 'WhatsApp', prefetch: 'whatsapp' as const },
             { to: '/ai', icon: Sparkles, label: 'Chat IA', prefetch: 'ai' as const },
             { to: '/reports', icon: BarChart3, label: 'Relatórios', prefetch: 'reports' as const },
             { to: '/settings', icon: Settings, label: 'Configurações', prefetch: 'settings' as const },
