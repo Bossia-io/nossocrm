@@ -8,13 +8,14 @@ import { WebhooksSection } from './components/WebhooksSection';
 import { McpSection } from './components/McpSection';
 import { DataStorageSettings } from './components/DataStorageSettings';
 import { ProductsCatalogManager } from './components/ProductsCatalogManager';
+import { WhatsAppSection } from './components/WhatsAppSection';
 import { AICenterSettings } from './AICenterSettings';
 
 import { UsersPage } from './UsersPage';
 import { useAuth } from '@/context/AuthContext';
-import { Settings as SettingsIcon, Users, Database, Sparkles, Plug, Package } from 'lucide-react';
+import { Settings as SettingsIcon, Users, Database, Sparkles, Plug, Package, MessageSquare } from 'lucide-react';
 
-type SettingsTab = 'general' | 'products' | 'integrations' | 'ai' | 'data' | 'users';
+type SettingsTab = 'general' | 'products' | 'integrations' | 'whatsapp' | 'ai' | 'data' | 'users';
 
 interface GeneralSettingsProps {
   hash?: string;
@@ -99,6 +100,14 @@ const ProductsSettings: React.FC = () => {
   return (
     <div className="pb-10">
       <ProductsCatalogManager />
+    </div>
+  );
+};
+
+const WhatsAppSettings: React.FC = () => {
+  return (
+    <div className="pb-10">
+      <WhatsAppSection />
     </div>
   );
 };
@@ -201,6 +210,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ tab: initialTab }) => {
   const tabs = [
     { id: 'general' as SettingsTab, name: 'Geral', icon: SettingsIcon },
     ...(profile?.role === 'admin' ? [{ id: 'products' as SettingsTab, name: 'Produtos/Serviços', icon: Package }] : []),
+    { id: 'whatsapp' as SettingsTab, name: 'WhatsApp', icon: MessageSquare },
     ...(profile?.role === 'admin' ? [{ id: 'integrations' as SettingsTab, name: 'Integrações', icon: Plug }] : []),
     { id: 'ai' as SettingsTab, name: 'Central de I.A', icon: Sparkles },
     { id: 'data' as SettingsTab, name: 'Dados', icon: Database },
@@ -211,6 +221,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ tab: initialTab }) => {
     switch (activeTab) {
       case 'products':
         return <ProductsSettings />;
+      case 'whatsapp':
+        return <WhatsAppSettings />;
       case 'integrations':
         return <IntegrationsSettings />;
       case 'ai':
